@@ -28,8 +28,6 @@
 #define KEY_PRESSED  1
 #define KEY_RELEASED 3
 
-static struct of_device_id bbq10kbd_ids[] = {{.compatible = DEVICE_NAME},{}};
-static const struct i2c_device_id bbq10kbd_id[] = { {DEVICE_NAME, 0}, {}};
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Billy Lindeman <billylindeman@gmail.com>");
@@ -41,4 +39,16 @@ struct bbq10kbd_keypad {
   struct input_dev *input;
 };
 
+static struct of_device_id bbq10kbd_ids[] = {
+    {.compatible = DEVICE_NAME},
+    {}
+};
+
+static const struct i2c_device_id bbq10kbd_id[] = { 
+    {DEVICE_NAME, 0}, 
+    {}
+};
 MODULE_DEVICE_TABLE(i2c, bbq10kbd_id);
+
+
+

@@ -18,9 +18,10 @@
     fragment@2 {
         target = <&i2c3>;
         __overlay__ {
-            /* needed to avoid dtc warning */
-            #address-cells = <1>;
-            #size-cells = <0>;
+        /* needed to avoid dtc warning */
+        #address-cells = <1>;
+        #size-cells = <0>;
+        status = "okay";
 
         bbq10kbd: bbq12kbd@0 {
             compatible = "bbq10kbd";
@@ -29,6 +30,7 @@
             interrupts = <451 2>; // high-to-low edge triggered
             interrupt-parent = <&gpio>;
             interrupt-controller;
+            status = "okay";
           };
         };
     };

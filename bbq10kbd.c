@@ -159,7 +159,7 @@ static struct i2c_driver bbq10kbd_i2c_driver = {
   .driver = {
     .name = DEVICE_NAME,
     .owner = THIS_MODULE,
-    .of_match_table = of_match_ptr(bbq10kbd_ids),
+    .of_match_table = bbq10kbd_ids,
   },
   .probe = bbq10kbd_i2c_probe,
   .remove = bbq10kbd_i2c_remove,
