@@ -1,13 +1,13 @@
-obj-m += bbq10.o
-BBQ10_FLAGS += -g -DDEBUG
-ccflags-y += ${BBQ10_FLAGS}
+obj-m += bbq10kbd.o
+BBQ10KBD_FLAGS += -g -DDEBUG
+ccflags-y += ${BBQ10KBD_FLAGS}
 CC += ${BBQ10_FLAGS}
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 debug:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
-	EXTRA_FLAGS="${BBQ10_FLAGS}"
+	EXTRA_FLAGS="${BBQ10KBD_FLAGS}"
 clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 install:
