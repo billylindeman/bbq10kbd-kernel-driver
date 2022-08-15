@@ -8,8 +8,9 @@
 		target = <&gpio>;
 		__overlay__ {
             kb_pins: kb_pins {
-                amlogic, pins = <451>;  //GPIOH_8
+                amlogic,pins = <451>;  //GPIOH_8
                 amlogic,function = <0>; //Input
+                amlogic,pull = <0>;
             }
 		};
 	};
@@ -22,10 +23,10 @@
             #size-cells = <0>;
 
         bbq10kbd: bbq12kbd@0 {
-            compatible = "bbq10";
+            compatible = "bbq10kbd";
             reg = <0x1f>;
             irq-gpio = <&gpio 451 0x2>; // IRQF_TRIGGER_FALLING
-            interrupts = <11 2>; // high-to-low edge triggered
+            interrupts = <451 2>; // high-to-low edge triggered
             interrupt-parent = <&gpio>;
             interrupt-controller;
           };

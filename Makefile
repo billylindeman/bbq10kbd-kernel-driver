@@ -12,3 +12,5 @@ clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 install:
 	sudo cp bbq10.ko /lib/modules/$(shell uname -r)/kernel/bbq10/bbq10.ko
+
+	
