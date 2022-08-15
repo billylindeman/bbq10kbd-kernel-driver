@@ -1,0 +1,34 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "radxa,zero", "amlogic,g12a";
+
+    fragment@1 {
+		target = <&gpio>;
+		__overlay__ {
+            kb_pins: kb_pins {
+                amlogic, pins = <451>;  //GPIOH_8
+                amlogic,function = <0>; //Input
+            }
+		};
+	};
+
+    fragment@2 {
+        target = <&i2c3>;
+        __overlay__ {
+            /* needed to avoid dtc warning */
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+        bbq10kbd: bbq12kbd@0 {
+            compatible = "bbq10";
+            reg = <0x1f>;
+            irq-gpio = <&gpio 451 0x2>; // IRQF_TRIGGER_FALLING
+            interrupts = <11 2>; // high-to-low edge triggered
+            interrupt-parent = <&gpio>;
+            interrupt-controller;
+          };
+        }
+    }
+};
