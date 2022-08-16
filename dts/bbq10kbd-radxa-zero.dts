@@ -6,19 +6,24 @@
 / {
 	compatible = "radxa,zero", "amlogic,g12a";
 
+    //fragment@0 {
+	//	target = <&gpio>;
+	//	__overlay__ {
+    //        kb_pins: kb_pins {
+    //            amlogic,pins = "GPIOH_8";  //GPIOH_8
+    //            amlogic,pullup = <0>;  //pullup
+    //            amlogic,pullupen = <0>;
+    //            amlogic,enable-output=<0>; //Input
+    //        };
+	//	};
+	//};
+
     fragment@0 {
-		target = <&gpio>;
-		__overlay__ {
-            kb_pins: kb_pins {
-                amlogic,pins = <451>;  //GPIOH_8
-                amlogic,function = <1>;
-                amlogic,enable-output = <1>; //Input
-                amlogic,pullup = <1>;
-                amlogic,pullupen = <1>;
-                phandle=<0x1>;
-            };
-		};
-	};
+        target = <&gpio_intc>;
+        __overlay__ {
+            status = "okay";
+        };
+    };
 
     fragment@1 {
         target = <&vcc_5v>;
@@ -39,13 +44,14 @@
             compatible = "bbq10kbd";
             reg = <0x1f>;
 
-            gpio-controller;
-            gpios = <&gpio 451 1>;
+            //pinctrl-names = "default";
+            //pinctrl-0 = <&kb_pins>;
 
-            interrupt-controller;
-            irq-gpios = <&gpio 451 1>; 
-            interrupts = <451 2>; // high-to-low edge triggered
+            //irq-gpio = <&gpio 451 2>; 
+            interrupts = <64 8>; // high-to-low edge triggered
+            interrupt-names = "bbq10kbd_irq";
             interrupt-parent = <&gpio_intc>;
+            interrupt-controller;
 
             status = "okay";
           };

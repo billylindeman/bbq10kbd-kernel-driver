@@ -104,6 +104,7 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
 {
   struct bbq10kbd_keypad *keypad_data;
   int ret, error;
+  int irq;
 
   printk(KERN_DEBUG "bbq10kbd: probe!!!");
   if(!i2c_check_functionality(client->adapter, 
@@ -114,7 +115,6 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
     return -ENODEV;
   }
   printk(KERN_DEBUG "bbq10kbd: configuring i2c");
-
 
 
   printk(KERN_DEBUG "bbq10kbd: setting up device...\n");
@@ -129,21 +129,28 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
 
   //configure interrupt
   ret = i2c_write_byte(keypad_data->i2c, REG_CFG, 0b01011110);
-  error = gpio_request_one(INTERRUPT_GPIO, GPIOF_OPEN_DRAIN | GPIOF_DIR_IN, "BB10KB_INT");
+
+  error = devm_gpio_request_one(&client->dev, INTERRUPT_GPIO, GPIOF_IN, "bbq10kbd_irq");
   if(error) {
       printk(KERN_ERR "bbq10kbd unable to claim interrupt gpio");
       return -ENODEV;
   }
 
+  //gpio_direction_input(INTERRUPT_GPIO);
+  irq = gpiod_to_irq(INTERRUPT_GPIO);
+  printk(KERN_DEBUG "bbq10kbd: irq from gpio: %d, irq from device: %d", irq, client->irq);
+ 
 
-  error = request_irq(gpio_to_irq(INTERRUPT_GPIO), bbq10kbd_irq_handler,
-        IRQF_SHARED | IRQF_ONESHOT,
+  printk(KERN_DEBUG "bbq10kbd: requesting irq handler %d", client->irq);
+  error = devm_request_irq(&client->dev, client->irq, bbq10kbd_irq_handler,
+        IRQF_SHARED | IRQF_TRIGGER_FALLING,
         client->name, keypad_data);
+  
 
-//  error = devm_request_threaded_irq(&client->dev, client->irq,
-//        NULL, bbq10kbd_irq_handler,
-//        IRQF_SHARED | IRQF_ONESHOT,
-//        client->name, keypad_data);
+  //error = devm_request_irq(&client->dev, client->irq,
+  //      bbq10kbd_irq_handler,
+  //      IRQF_TRIGGER_FALLING,
+  //      client->name, keypad_data);
 
   if (error) {
     dev_err(&client->dev, "Unable to claim irq %d; error %d\n",
@@ -151,6 +158,7 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
     return error;
   }
 
+  
   ret = bbq10kbd_init_input(keypad_data);
   if(ret != 0){
     printk(KERN_ERR "bbq10kbd: unable to initialise input device, returned %d\n", ret);
@@ -206,6 +214,7 @@ static void __exit bbq10kbd_exit(void)
   printk(KERN_DEBUG "bbq10kbd: exiting...");
   printk(KERN_DEBUG "bbq10kbd: deleting i2c driver...");
   i2c_del_driver(&bbq10kbd_i2c_driver);
+
   printk("bbq10kbd: exited");
 }
 
