@@ -1,6 +1,8 @@
 /dts-v1/;
 /plugin/;
 
+//#include <dt-bindings/gpio/meson-g12a-gpio.h>
+
 / {
 	compatible = "radxa,zero", "amlogic,g12a";
 
@@ -9,13 +11,23 @@
 		__overlay__ {
             kb_pins: kb_pins {
                 amlogic,pins = <451>;  //GPIOH_8
-                amlogic,function = <0>; //Input
-                amlogic,pull = <0>;
+                amlogic,function = <1>;
+                amlogic,enable-output = <1>; //Input
+                amlogic,pullup = <1>;
+                amlogic,pullupen = <1>;
+                phandle=<0x1>;
             };
 		};
 	};
 
     fragment@1 {
+        target = <&vcc_5v>;
+        __overlay__ {
+            status = "disabled";
+        };
+    };
+
+    fragment@2 {
         target = <&i2c3>;
         __overlay__ {
         /* needed to avoid dtc warning */
@@ -26,10 +38,15 @@
         bbq10kbd: bbq10kbd@1f {
             compatible = "bbq10kbd";
             reg = <0x1f>;
-            irq-gpio = <&gpio 451 2>; // IRQF_TRIGGER_FALLING
+
+            gpio-controller;
+            gpios = <&gpio 451 1>;
+
+            interrupt-controller;
+            irq-gpios = <&gpio 451 1>; 
             interrupts = <451 2>; // high-to-low edge triggered
             interrupt-parent = <&gpio_intc>;
-            interrupt-controller;
+
             status = "okay";
           };
         };

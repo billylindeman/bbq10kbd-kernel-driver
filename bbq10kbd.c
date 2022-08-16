@@ -1,5 +1,6 @@
 #include "bbq10kbd.h"
 
+#define INTERRUPT_GPIO 451
 
 static int bbq10kbd_init_input(struct bbq10kbd_keypad* keypad_data)
 {
@@ -128,12 +129,21 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
 
   //configure interrupt
   ret = i2c_write_byte(keypad_data->i2c, REG_CFG, 0b01011110);
+  error = gpio_request_one(INTERRUPT_GPIO, GPIOF_OPEN_DRAIN | GPIOF_DIR_IN, "BB10KB_INT");
+  if(error) {
+      printk(KERN_ERR "bbq10kbd unable to claim interrupt gpio");
+      return -ENODEV;
+  }
 
 
-  error = devm_request_threaded_irq(&client->dev, client->irq,
-        NULL, bbq10kbd_irq_handler,
+  error = request_irq(gpio_to_irq(INTERRUPT_GPIO), bbq10kbd_irq_handler,
         IRQF_SHARED | IRQF_ONESHOT,
         client->name, keypad_data);
+
+//  error = devm_request_threaded_irq(&client->dev, client->irq,
+//        NULL, bbq10kbd_irq_handler,
+//        IRQF_SHARED | IRQF_ONESHOT,
+//        client->name, keypad_data);
 
   if (error) {
     dev_err(&client->dev, "Unable to claim irq %d; error %d\n",
