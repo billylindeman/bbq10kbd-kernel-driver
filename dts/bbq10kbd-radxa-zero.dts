@@ -23,12 +23,12 @@
         #size-cells = <0>;
         status = "okay";
 
-        bbq10kbd: bbq10kbd@0 {
+        bbq10kbd: bbq10kbd@1f {
             compatible = "bbq10kbd";
             reg = <0x1f>;
-            irq-gpio = <&gpio 451 0x2>; // IRQF_TRIGGER_FALLING
+            irq-gpio = <&gpio 451 2>; // IRQF_TRIGGER_FALLING
             interrupts = <451 2>; // high-to-low edge triggered
-            interrupt-parent = <&gpio>;
+            interrupt-parent = <&gpio_intc>;
             interrupt-controller;
             status = "okay";
           };

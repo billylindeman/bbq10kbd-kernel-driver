@@ -43,6 +43,8 @@ static int bbq10kbd_init_input(struct bbq10kbd_keypad* keypad_data)
 // IRQ Handler to read i2c fifo and generate events 
 static irqreturn_t bbq10kbd_irq_handler(int irq, void *dev_id)
 {
+    printk(KERN_DEBUG "bbq10kbd: irq handler");
+
 	struct bbq10kbd_keypad *keypad_data = dev_id;
 	uint8_t reg;
     uint32_t fifo_read;
