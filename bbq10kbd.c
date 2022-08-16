@@ -114,11 +114,20 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
   }
   printk(KERN_DEBUG "bbq10kbd: configuring i2c");
 
+
+
   printk(KERN_DEBUG "bbq10kbd: setting up device...\n");
   keypad_data = devm_kzalloc(&client->dev, sizeof(struct bbq10kbd_keypad), GFP_KERNEL);
   if(keypad_data == NULL)
     return -ENOMEM; 
   keypad_data->i2c = client;
+
+  // check fw version
+  ret = i2c_read_byte(keypad_data->i2c, REG_VER);
+  printk(KERN_DEBUG "bb10kbd: firmware version = %d", ret);
+
+  //configure interrupt
+  ret = i2c_write_byte(keypad_data->i2c, REG_CFG, 0b01011110);
 
 
   error = devm_request_threaded_irq(&client->dev, client->irq,
