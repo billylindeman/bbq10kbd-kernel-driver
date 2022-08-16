@@ -51,21 +51,22 @@ static irqreturn_t bbq10kbd_irq_handler(int irq, void *dev_id)
     uint32_t fifo_read;
 	int error;
 
-
-
     // Read the FIFO until it's empty
-    while(reg = i2c_smbus_read_word_data(keypad_data->i2c, REG_FIF) && reg) {
-        uint8_t key = reg & 0x11110000;
-        uint8_t state = reg & 0x00001111;
+    do {
+        fifo_read = i2c_smbus_read_word_data(keypad_data->i2c, REG_FIF); 
+        uint8_t key = (fifo_read & 0xFF00) >> 8;
+        uint8_t state = fifo_read & 0x00FF;
 
-        printk(KERN_DEBUG "bbq10kbd: fifo-read key: %d, state: %d", key, state);
 
+        printk(KERN_DEBUG "bbq10kbd: fifo-read %02X, key: %d, state: %d", fifo_read, key, state);
 
         if(state == KEY_PRESSED || state == KEY_RELEASED) {
             int keycode = bbq10kbd_keycodes[key];
+
+            printk(KERN_DEBUG "bbq10kbd: input-event: %d", keycode);
             input_event(keypad_data->input, EV_KEY, keycode, (state == KEY_PRESSED));  
         }
-    }
+    } while(fifo_read != 0x0000);
 
 
     error = i2c_write_byte(keypad_data->i2c, REG_INT, 0x00);
@@ -137,13 +138,13 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
   }
 
   //gpio_direction_input(INTERRUPT_GPIO);
-  irq = gpiod_to_irq(INTERRUPT_GPIO);
+  //irq = gpio_to_irq(INTERRUPT_GPIO);
   printk(KERN_DEBUG "bbq10kbd: irq from gpio: %d, irq from device: %d", irq, client->irq);
  
 
   printk(KERN_DEBUG "bbq10kbd: requesting irq handler %d", client->irq);
-  error = devm_request_irq(&client->dev, client->irq, bbq10kbd_irq_handler,
-        IRQF_SHARED | IRQF_TRIGGER_FALLING,
+  error = devm_request_threaded_irq(&client->dev, client->irq, NULL, bbq10kbd_irq_handler,
+        IRQF_SHARED | IRQF_ONESHOT,
         client->name, keypad_data);
   
 
