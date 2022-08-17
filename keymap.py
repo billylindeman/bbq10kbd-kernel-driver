@@ -44,27 +44,29 @@ keymap[0x33] = 'KEY_3'
 keymap[0x28] = 'KEY_KPLEFTPAREN'
 keymap[0x29] = 'KEY_KPRIGHTPAREN'
 #keymap[0x5F] = 'KEY_UNDERSCORE'
-keymap[0xD3] = 'KEY_MINUS'
-keymap[0x2B] = 'KEY_PLUS'
 
-
-
-
-
-
-
+keymap[0x2D] = 'KEY_MINUS'
+keymap[0x2B] = 'KEY_KPPLUS'
+keymap[0x2A] = 'KEY_KPASTERISK'
 keymap[0x33] = 'KEY_4'
 keymap[0x34] = 'KEY_5'
 keymap[0x35] = 'KEY_6'
-
-
 keymap[0x2F] = 'KEY_SLASH'
+keymap[0x3A] = 'KEY_SEMICOLON'
+
+keymap[0x37] = 'KEY_7'
+keymap[0x38] = 'KEY_8'
+keymap[0x39] = 'KEY_9'
+keymap[0x3F] = 'KEY_QUESTION'
 
 #speaker
 keymap[0x60] = 'KEY_TAB'
 
-print("static unsigned short bbq10_keycodes[] = {\n")
+print("#include <linux/input.h>")
+print("")
+print("static unsigned short bbq10kbd_keycodes[] = {")
 for i in range(len(keymap)):
-    end = '' if i%14 else '\n'
+    end = '' if i%15 or i == 0  else '\n'
     print("{}, ".format(keymap[i]), end=end)
+print("");
 print("};")
