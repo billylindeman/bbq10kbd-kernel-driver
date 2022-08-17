@@ -1,38 +1,4 @@
 #!/usr/bin/env python3
-
-
-#q=0x71
-#w=0x77
-#e=0x65
-#r=0x72
-#t=0x74
-#y=0x79
-#u=0x75
-#i=0x69
-#o=0x6f
-#p=0x70
-#a=0x61
-#s=0x73
-#d=0x64
-#f=0x66
-#g=0x67
-#h=0x68
-#j=0x6a
-#k=0x6b
-#l=0x6c
-#z=0x7a
-#x=0x78
-#c=0x63
-#v=0x76
-#b=0x62
-#n=0x6e
-#m=0x6d
-#
-#
-#$=0x24
-#<backspace>=0x08
-#<return>=0x0a
-
 keymap = [0]*255
 
 keymap[0x71] = 'KEY_Q'
@@ -67,12 +33,35 @@ keymap[0x08] = 'KEY_BACKSPACE'
 keymap[0x0a] = 'KEY_ENTER'
 keymap[0x20] = 'KEY_SPACE'
 
-
-#alt
-keymap[0x2F] = 'KEY_SLASH'
+#top row
 keymap[0x06] = 'KEY_ESC'
-keymap[0x60] = 'KEY_TAB'
 
+#alt row 1
+keymap[0x23] = 'KEY_NUMERIC_POUND'
+keymap[0x31] = 'KEY_1'
+keymap[0x32] = 'KEY_2'
+keymap[0x33] = 'KEY_3'
+keymap[0x28] = 'KEY_KPLEFTPAREN'
+keymap[0x29] = 'KEY_KPRIGHTPAREN'
+#keymap[0x5F] = 'KEY_UNDERSCORE'
+keymap[0xD3] = 'KEY_MINUS'
+keymap[0x2B] = 'KEY_PLUS'
+
+
+
+
+
+
+
+keymap[0x33] = 'KEY_4'
+keymap[0x34] = 'KEY_5'
+keymap[0x35] = 'KEY_6'
+
+
+keymap[0x2F] = 'KEY_SLASH'
+
+#speaker
+keymap[0x60] = 'KEY_TAB'
 
 print("static unsigned short bbq10_keycodes[] = {\n")
 for i in range(len(keymap)):
