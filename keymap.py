@@ -58,6 +58,8 @@ keymap[0x37] = 'KEY_7'
 keymap[0x38] = 'KEY_8'
 keymap[0x39] = 'KEY_9'
 keymap[0x3F] = 'KEY_QUESTION'
+keymap[0x2C] = 'KEY_COMMA'
+keymap[0x2E] = 'KEY_DOT'
 
 #speaker
 keymap[0x60] = 'KEY_TAB'
