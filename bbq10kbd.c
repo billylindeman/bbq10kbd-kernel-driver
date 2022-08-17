@@ -63,8 +63,9 @@ static irqreturn_t bbq10kbd_irq_handler(int irq, void *dev_id)
         if(state == KEY_PRESSED || state == KEY_RELEASED) {
             int keycode = bbq10kbd_keycodes[key];
 
-            printk(KERN_DEBUG "bbq10kbd: input-event: %d", keycode);
+            printk(KERN_DEBUG "bbq10kbd: input-event: %02x", keycode);
             input_event(keypad_data->input, EV_KEY, keycode, (state == KEY_PRESSED));  
+            input_sync(keypad_data->input);
         }
     } while(fifo_read != 0x0000);
 
@@ -129,7 +130,7 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
   printk(KERN_DEBUG "bb10kbd: firmware version = %d", ret);
 
   //configure interrupt
-  ret = i2c_write_byte(keypad_data->i2c, REG_CFG, 0b01011110);
+  //ret = i2c_write_byte(keypad_data->i2c, REG_CFG, 0b01011110);
 
   error = devm_gpio_request_one(&client->dev, INTERRUPT_GPIO, GPIOF_IN, "bbq10kbd_irq");
   if(error) {

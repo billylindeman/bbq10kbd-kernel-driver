@@ -33,7 +33,7 @@
 #<backspace>=0x08
 #<return>=0x0a
 
-keymap = [0]*255 
+keymap = [0]*255
 
 keymap[0x71] = 'KEY_Q'
 keymap[0x77] = 'KEY_W'
@@ -62,9 +62,16 @@ keymap[0x62] = 'KEY_B'
 keymap[0x6e] = 'KEY_N'
 keymap[0x6d] = 'KEY_M'
 
-keymap[0x24] = '$'
+keymap[0x24] = 'KEY_DOLLAR'
 keymap[0x08] = 'KEY_BACKSPACE'
 keymap[0x0a] = 'KEY_ENTER'
+keymap[0x20] = 'KEY_SPACE'
+
+
+#alt
+keymap[0x2F] = 'KEY_SLASH'
+keymap[0x06] = 'KEY_ESC'
+keymap[0x60] = 'KEY_TAB'
 
 
 print("static unsigned short bbq10_keycodes[] = {\n")
