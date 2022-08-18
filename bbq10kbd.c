@@ -82,6 +82,8 @@ static int bbq10kbd_init_input_pointer(struct bbq10kbd_keypad* keypad_data)
 static void bbq10kbd_irq_handle_key(struct bbq10kbd_keypad *keypad_data) {
     unsigned int fifo_read;
     unsigned char key_code, key_state;
+    unsigned char evt_code;
+
     // Read REG_FIF until it's empty
     do {
         fifo_read = i2c_smbus_read_word_data(keypad_data->i2c, REG_FIF); 
@@ -91,8 +93,9 @@ static void bbq10kbd_irq_handle_key(struct bbq10kbd_keypad *keypad_data) {
         printk(KERN_DEBUG "bbq10kbd: handle_key fifo-read %02X, key: %d, state: %d", fifo_read, key_code, key_state);
 
         if(key_state == KEY_PRESSED || key_state == KEY_RELEASED) {
-            printk(KERN_DEBUG "bbq10kbd: input-event EV_KEY: %02x", key_code);
-            input_event(keypad_data->input_keyboard, EV_KEY, key_code, (key_state == KEY_PRESSED));  
+            evt_code = bbq10kbd_keycodes[key_code];
+            printk(KERN_DEBUG "bbq10kbd: input-event EV_KEY: %02x", evt_code);
+            input_event(keypad_data->input_keyboard, EV_KEY, evt_code, (key_state == KEY_PRESSED));  
             input_sync(keypad_data->input_keyboard);
         }
     } while(fifo_read != 0x0000);
