@@ -13,8 +13,11 @@ static int bbq10kbd_init_input(struct bbq10kbd_keypad* keypad_data)
   if(input == NULL)
     return -ENOMEM;
  
-  input->name = "bbq10kbd-i2c-kbd";
-  input->evbit[0] = BIT_MASK(EV_KEY);
+  input->name = "bbq10kbd-i2c";
+  input->propbit[0] = BIT_MASK(INPUT_PROP_DIRECT);
+  input->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
+  input->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
+
   input->keycode = bbq10kbd_keycodes;
   input->keycodesize = sizeof(unsigned short); 
   input->keycodemax = num_keycodes;
@@ -41,64 +44,65 @@ static int bbq10kbd_init_input(struct bbq10kbd_keypad* keypad_data)
 }
 
 
-// IRQ Handler to read i2c fifo and generate events 
-static irqreturn_t bbq10kbd_irq_handler(int irq, void *dev_id)
-{
-    printk(KERN_DEBUG "bbq10kbd: irq handler");
-
-	struct bbq10kbd_keypad *keypad_data = dev_id;
-	uint8_t reg;
-    uint32_t fifo_read;
-	int error;
-
-    // Read the FIFO until it's empty
+static void bbq10kbd_irq_handle_key(struct bbq10kbd_keypad *keypad_data) {
+    unsigned int fifo_read;
+    unsigned char key_code, key_state;
+    // Read REG_FIF until it's empty
     do {
         fifo_read = i2c_smbus_read_word_data(keypad_data->i2c, REG_FIF); 
-        uint8_t key = (fifo_read & 0xFF00) >> 8;
-        uint8_t state = fifo_read & 0x00FF;
+        key_code = (fifo_read & 0xFF00) >> 8;
+        key_state = fifo_read & 0x00FF;
 
+        printk(KERN_DEBUG "bbq10kbd: handle_key fifo-read %02X, key: %d, state: %d", fifo_read, key_code, key_state);
 
-        printk(KERN_DEBUG "bbq10kbd: fifo-read %02X, key: %d, state: %d", fifo_read, key, state);
-
-        if(state == KEY_PRESSED || state == KEY_RELEASED) {
-            int keycode = bbq10kbd_keycodes[key];
-
-            printk(KERN_DEBUG "bbq10kbd: input-event: %02x", keycode);
-            input_event(keypad_data->input, EV_KEY, keycode, (state == KEY_PRESSED));  
+        if(key_state == KEY_PRESSED || key_state == KEY_RELEASED) {
+            printk(KERN_DEBUG "bbq10kbd: input-event EV_KEY: %02x", key_code);
+            input_event(keypad_data->input, EV_KEY, key_code, (key_state == KEY_PRESSED));  
             input_sync(keypad_data->input);
         }
     } while(fifo_read != 0x0000);
 
+}
 
+static void bbq10kbd_irq_handle_trackpad(struct bbq10kbd_keypad *keypad_data) {
+    unsigned char tox, toy;
+    printk(KERN_DEBUG "bbq10kbd: handle_trackpad");
+
+    // Read X/Y relative motion registers
+    tox = i2c_smbus_read_word_data(keypad_data->i2c, REG_FIF); 
+    toy = i2c_smbus_read_word_data(keypad_data->i2c, REG_FIF); 
+
+    // Send Relative Motion event to input device
+    input_event(keypad_data->input, EV_REL, REL_X, tox);
+    input_event(keypad_data->input, EV_REL, REL_Y, toy);
+    input_sync(keypad_data->input);
+}
+
+
+// IRQ Handler to read i2c fifo and generate events 
+static irqreturn_t bbq10kbd_irq_handler(int irq, void *dev_id)
+{
+	struct bbq10kbd_keypad *keypad_data = dev_id;
+    int error;
+    unsigned char irq_reg;
+
+    // Read Interrupt Status
+    irq_reg = i2c_read_byte(keypad_data->i2c, REG_INT);
+
+    printk(KERN_DEBUG "bbq10kbd: irq handler reg_int=%02x", irq_reg);
+
+    // Dispatch interrupt event handler
+    if (irq_reg & MASK_INT_KEY) {
+        bbq10kbd_irq_handle_key(keypad_data);
+    }else if (irq_reg & MASK_INT_TOUCH) {
+        bbq10kbd_irq_handle_trackpad(keypad_data);
+    }
+
+    // Clear REG_INT 
     error = i2c_write_byte(keypad_data->i2c, REG_INT, 0x00);
     if(error) {
         dev_err(&keypad_data->i2c->dev, "unable to clear REG_INT\n");
     }
-
-
-
-//	error = i2c_read_byte(keypad_data, REG_INT, &reg);
-//	if (error) {
-//		dev_err(&keypad_data->client->dev,
-//			"unable to read REG_INT_STAT\n");
-//		return IRQ_NONE;
-//	}
-//
-//	if (!reg)
-//		return IRQ_NONE;
-//
-//	if (reg & INT_STAT_OVR_FLOW_INT)
-//		dev_warn(&keypad_data->client->dev, "overflow occurred\n");
-//
-//	if (reg & INT_STAT_K_INT)
-//		tca8418_read_keypad(keypad_data);
-//
-//	/* Clear all interrupts, even IRQs we didn't check (GPI, CAD, LCK) */
-//	reg = 0xff;
-//	error = tca8418_write_byte(keypad_data, REG_INT_STAT, reg);
-//	if (error)
-//		dev_err(&keypad_data->client->dev,
-//			"unable to clear REG_INT_STAT\n");
 
 	return IRQ_HANDLED;
 }
@@ -108,7 +112,7 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
   int ret, error;
   int irq;
 
-  printk(KERN_DEBUG "bbq10kbd: probe!!!");
+  printk(KERN_DEBUG "bbq10kbd: probing");
   if(!i2c_check_functionality(client->adapter, 
         I2C_FUNC_SMBUS_BYTE_DATA | 
         I2C_FUNC_SMBUS_WORD_DATA))
@@ -116,10 +120,7 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
     printk(KERN_ERR "bbq10kbd: %s needed i2c functionality is not supported\n", __func__);
     return -ENODEV;
   }
-  printk(KERN_DEBUG "bbq10kbd: configuring i2c");
-
-
-  printk(KERN_DEBUG "bbq10kbd: setting up device...\n");
+  printk(KERN_DEBUG "bbq10kbd: configuring i2c device");
   keypad_data = devm_kzalloc(&client->dev, sizeof(struct bbq10kbd_keypad), GFP_KERNEL);
   if(keypad_data == NULL)
     return -ENOMEM; 
@@ -129,8 +130,8 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
   ret = i2c_read_byte(keypad_data->i2c, REG_VER);
   printk(KERN_DEBUG "bb10kbd: firmware version = %d", ret);
 
-  //configure interrupt
-  //ret = i2c_write_byte(keypad_data->i2c, REG_CFG, 0b01011110);
+  //configure keyboard 
+  ret = i2c_write_byte(keypad_data->i2c, REG_CFG, BBQ10_CFG_BITS);
 
   error = devm_gpio_request_one(&client->dev, INTERRUPT_GPIO, GPIOF_IN, "bbq10kbd_irq");
   if(error) {
@@ -138,22 +139,12 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
       return -ENODEV;
   }
 
-  //gpio_direction_input(INTERRUPT_GPIO);
-  //irq = gpio_to_irq(INTERRUPT_GPIO);
-  printk(KERN_DEBUG "bbq10kbd: irq from gpio: %d, irq from device: %d", irq, client->irq);
- 
-
+  //setup irq handler
   printk(KERN_DEBUG "bbq10kbd: requesting irq handler %d", client->irq);
   error = devm_request_threaded_irq(&client->dev, client->irq, NULL, bbq10kbd_irq_handler,
         IRQF_SHARED | IRQF_ONESHOT,
         client->name, keypad_data);
   
-
-  //error = devm_request_irq(&client->dev, client->irq,
-  //      bbq10kbd_irq_handler,
-  //      IRQF_TRIGGER_FALLING,
-  //      client->name, keypad_data);
-
   if (error) {
     dev_err(&client->dev, "Unable to claim irq %d; error %d\n",
     client->irq, error);
