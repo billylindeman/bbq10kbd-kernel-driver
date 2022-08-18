@@ -45,7 +45,6 @@ static int bbq10kbd_init_input_pointer(struct bbq10kbd_keypad* keypad_data)
 {
   struct input_dev* input;
   int ret;
-  const int num_keycodes = ARRAY_SIZE(bbq10kbd_keycodes);
 
   printk(KERN_DEBUG "bbq10kbd: initialising internal input...");
   input = input_allocate_device();
@@ -53,6 +52,7 @@ static int bbq10kbd_init_input_pointer(struct bbq10kbd_keypad* keypad_data)
     return -ENOMEM;
  
   input->name = "bbq10kbd-i2c-mouse";
+
   set_bit(INPUT_PROP_POINTER, input->propbit);
   set_bit(EV_REL, input->evbit);
   set_bit(EV_KEY, input->evbit);
@@ -71,7 +71,7 @@ static int bbq10kbd_init_input_pointer(struct bbq10kbd_keypad* keypad_data)
     return -ENODEV;
   }
 
-  printk(KERN_DEBUG "bbq10kbd: initialised input device with %d keycodes", num_keycodes);
+  printk(KERN_DEBUG "bbq10kbd: initialised input pointer");
   keypad_data->input_pointer = input;
 
   return ret;
@@ -110,10 +110,8 @@ static void bbq10kbd_irq_handle_trackpad(struct bbq10kbd_keypad *keypad_data) {
 
     // Send Relative Motion event to input device
     //
-    input_report_rel(keyboard_data->input_pointer, REL_X, tox);
-    input_report_rel(keyboard_data->input_pointer, REL_Y, toy);
-    //input_event(keypad_data->input_pointer, EV_REL, REL_X, tox);
-    //input_event(keypad_data->input_pointer, EV_REL, REL_Y, toy);
+    input_event(keypad_data->input_pointer, EV_REL, REL_X, tox);
+    input_event(keypad_data->input_pointer, EV_REL, REL_Y, toy);
     input_sync(keypad_data->input_pointer);
 }
 
