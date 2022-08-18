@@ -2,7 +2,7 @@
 
 #define INTERRUPT_GPIO 451
 
-static int bbq10kbd_init_input(struct bbq10kbd_keypad* keypad_data)
+static int bbq10kbd_init_input_keyboard(struct bbq10kbd_keypad* keypad_data)
 {
   struct input_dev* input;
   int ret;
@@ -13,11 +13,9 @@ static int bbq10kbd_init_input(struct bbq10kbd_keypad* keypad_data)
   if(input == NULL)
     return -ENOMEM;
  
-  input->name = "bbq10kbd-i2c";
-  input->propbit[0] = BIT_MASK(INPUT_PROP_DIRECT);
-  input->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
-  input->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
+  input->name = "bbq10kbd-i2c-keyboard";
 
+  input->evbit[0] = BIT_MASK(EV_KEY) ;
   input->keycode = bbq10kbd_keycodes;
   input->keycodesize = sizeof(unsigned short); 
   input->keycodemax = num_keycodes;
@@ -37,7 +35,44 @@ static int bbq10kbd_init_input(struct bbq10kbd_keypad* keypad_data)
   }
 
   printk(KERN_DEBUG "bbq10kbd: initialised input device with %d keycodes", num_keycodes);
-  keypad_data->input = input;
+  keypad_data->input_keyboard = input;
+
+  return ret;
+
+}
+
+static int bbq10kbd_init_input_pointer(struct bbq10kbd_keypad* keypad_data)
+{
+  struct input_dev* input;
+  int ret;
+  const int num_keycodes = ARRAY_SIZE(bbq10kbd_keycodes);
+
+  printk(KERN_DEBUG "bbq10kbd: initialising internal input...");
+  input = input_allocate_device();
+  if(input == NULL)
+    return -ENOMEM;
+ 
+  input->name = "bbq10kbd-i2c-mouse";
+  set_bit(INPUT_PROP_POINTER, input->propbit);
+  set_bit(EV_REL, input->evbit);
+  set_bit(EV_KEY, input->evbit);
+  set_bit(REL_X, input->relbit);
+  set_bit(REL_Y, input->relbit);
+  set_bit(BTN_LEFT, input->keybit);
+  set_bit(BTN_RIGHT, input->keybit);
+  set_bit(REL_HWHEEL, input->relbit);
+
+  // Configure keycodes
+  ret = input_register_device(input);
+  if(ret != 0)
+  {
+    printk(KERN_ERR "bbq10kbd: unable to register input device, register returned %d\n", ret);
+    input_unregister_device(input);
+    return -ENODEV;
+  }
+
+  printk(KERN_DEBUG "bbq10kbd: initialised input device with %d keycodes", num_keycodes);
+  keypad_data->input_pointer = input;
 
   return ret;
 
@@ -57,25 +92,29 @@ static void bbq10kbd_irq_handle_key(struct bbq10kbd_keypad *keypad_data) {
 
         if(key_state == KEY_PRESSED || key_state == KEY_RELEASED) {
             printk(KERN_DEBUG "bbq10kbd: input-event EV_KEY: %02x", key_code);
-            input_event(keypad_data->input, EV_KEY, key_code, (key_state == KEY_PRESSED));  
-            input_sync(keypad_data->input);
+            input_event(keypad_data->input_keyboard, EV_KEY, key_code, (key_state == KEY_PRESSED));  
+            input_sync(keypad_data->input_keyboard);
         }
     } while(fifo_read != 0x0000);
 
 }
 
 static void bbq10kbd_irq_handle_trackpad(struct bbq10kbd_keypad *keypad_data) {
-    unsigned char tox, toy;
-    printk(KERN_DEBUG "bbq10kbd: handle_trackpad");
+    signed char tox, toy;
 
     // Read X/Y relative motion registers
-    tox = i2c_smbus_read_word_data(keypad_data->i2c, REG_FIF); 
-    toy = i2c_smbus_read_word_data(keypad_data->i2c, REG_FIF); 
+    tox = (signed char) i2c_smbus_read_word_data(keypad_data->i2c, REG_TOX); 
+    toy = (signed char) i2c_smbus_read_word_data(keypad_data->i2c, REG_TOY); 
+
+    printk(KERN_DEBUG "bbq10kbd: handle_trackpad (x,y) = (%i,%i)", tox,  toy);
 
     // Send Relative Motion event to input device
-    input_event(keypad_data->input, EV_REL, REL_X, tox);
-    input_event(keypad_data->input, EV_REL, REL_Y, toy);
-    input_sync(keypad_data->input);
+    //
+    input_report_rel(keyboard_data->input_pointer, REL_X, tox);
+    input_report_rel(keyboard_data->input_pointer, REL_Y, toy);
+    //input_event(keypad_data->input_pointer, EV_REL, REL_X, tox);
+    //input_event(keypad_data->input_pointer, EV_REL, REL_Y, toy);
+    input_sync(keypad_data->input_pointer);
 }
 
 
@@ -110,7 +149,6 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
 {
   struct bbq10kbd_keypad *keypad_data;
   int ret, error;
-  int irq;
 
   printk(KERN_DEBUG "bbq10kbd: probing");
   if(!i2c_check_functionality(client->adapter, 
@@ -152,11 +190,19 @@ static int bbq10kbd_i2c_probe(struct i2c_client *client, const struct i2c_device
   }
 
   
-  ret = bbq10kbd_init_input(keypad_data);
+  ret = bbq10kbd_init_input_keyboard(keypad_data);
   if(ret != 0){
-    printk(KERN_ERR "bbq10kbd: unable to initialise input device, returned %d\n", ret);
+    printk(KERN_ERR "bbq10kbd: unable to initialise keyboard input device, returned %d\n", ret);
     return -ENODEV;
   }
+
+  
+  ret = bbq10kbd_init_input_pointer(keypad_data);
+  if(ret != 0){
+    printk(KERN_ERR "bbq10kbd: unable to initialise pointer input device, returned %d\n", ret);
+    return -ENODEV;
+  }
+
   
   // Device setup complete, set the client's device data
   i2c_set_clientdata(client, keypad_data);
@@ -169,7 +215,8 @@ static int bbq10kbd_i2c_remove(struct i2c_client *client) {
   struct bbq10kbd_keypad *keypad_data = i2c_get_clientdata(client);
  
   printk(KERN_DEBUG "bbq10kbd: input_unregister_device");
-  input_unregister_device(keypad_data->input);
+  input_unregister_device(keypad_data->input_keyboard);
+  input_unregister_device(keypad_data->input_pointer);
   printk(KERN_DEBUG "bbq10kbd: freeing device memory");
   kfree(keypad_data);
 

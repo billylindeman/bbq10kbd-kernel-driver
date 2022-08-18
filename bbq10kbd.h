@@ -67,7 +67,8 @@ MODULE_VERSION("0.1");
 
 struct bbq10kbd_keypad {
   struct i2c_client *i2c;
-  struct input_dev *input;
+  struct input_dev *input_keyboard;
+  struct input_dev *input_pointer;
 };
 
 static struct of_device_id bbq10kbd_ids[] = {
