@@ -1,0 +1,92 @@
+#
+#  Blackberry Q10/Q20 Keymap   
+#
+#  Billy Lindeman <billylindeman@gmail.com>
+#  
+#
+#  https://linux.die.net/man/5/keymaps
+#  https://wiki.linuxquestions.org/wiki/List_of_keysyms
+#
+
+charset "iso-8859-1"
+keymaps 0-15
+
+
+# Four top buttons
+keycode 1 = Escape
+
+# First Row 
+keycode  16 = q 
+    alt keycode 16 = numbersign
+keycode  17 = w 
+    alt keycode 17 = 1
+keycode  18 = e 
+    alt keycode 18 = 2
+keycode  19 = r 
+    alt keycode 19 = 3
+keycode  20 = t
+    alt keycode 20 = parenleft
+keycode  21 = y
+    alt keycode 21 = parenright
+keycode  22 = u 
+    alt keycode 22 = underscore
+keycode  23 = i
+    alt keycode 23 = minus
+keycode  24 = o
+    alt keycode 24 = plus 
+keycode  25 = p           
+    alt keycode 25 = at
+
+
+# Second Row
+keycode  30 = a
+    alt keycode 30 = asterisk
+keycode  31 = s               
+    alt keycode 31 = 4
+keycode  32 = d               
+    alt keycode 32 = 5
+keycode  33 = f               
+    alt keycode 33 = 6
+keycode  34 = g       
+    alt keycode 34 = slash
+keycode  35 = h               
+    alt keycode 35 = colon
+keycode  36 = j               
+    alt keycode 36 = semicolon
+keycode  37 = k               
+    alt keycode 37 = apostrophe
+keycode  38 = l               
+    alt keycode 38 = quotedbl
+keycode 14 = BackSpace 
+
+# Third Row
+keycode  56 = Alt             
+keycode  44 = z
+    alt keycode 44 = 7
+keycode  45 = x
+    alt keycode 45 = 8
+keycode  46 = c
+    alt keycode 46 = 9
+keycode  47 = v
+    alt keycode 47 = question
+keycode  48 = b
+    alt keycode 48 = exclam
+keycode  49 = n
+    alt keycode 49 = comma
+keycode  50 = m               
+    alt keycode 50 = period
+keycode 178 = dollar
+    alt keycode 178 = Tab
+
+
+# Fourth Row
+keycode  42 = Shift           
+keycode  29 = Control
+    alt keycode 29 = 0
+keycode  57 = space            space           
+	alt	keycode  57 = Meta_space      
+keycode  133 = Control 
+keycode  54 = Shift
+keycode  28 = Return          
+	alt	keycode  28 = Meta_Control_m  
+

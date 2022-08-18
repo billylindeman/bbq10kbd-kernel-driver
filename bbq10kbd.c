@@ -90,11 +90,11 @@ static void bbq10kbd_irq_handle_key(struct bbq10kbd_keypad *keypad_data) {
         key_code = (fifo_read & 0xFF00) >> 8;
         key_state = fifo_read & 0x00FF;
 
-        printk(KERN_DEBUG "bbq10kbd: handle_key fifo-read %02X, key: %d, state: %d", fifo_read, key_code, key_state);
+        printk(KERN_DEBUG "bbq10kbd: handle_key fifo-read %02X, key: %02X, state: %d", fifo_read, key_code, key_state);
 
         if(key_state == KEY_PRESSED || key_state == KEY_RELEASED) {
             evt_code = bbq10kbd_keycodes[key_code];
-            printk(KERN_DEBUG "bbq10kbd: input-event EV_KEY: %02x", evt_code);
+            printk(KERN_DEBUG "bbq10kbd: input-event EV_KEY %d", evt_code);
             input_event(keypad_data->input_keyboard, EV_KEY, evt_code, (key_state == KEY_PRESSED));  
             input_sync(keypad_data->input_keyboard);
         }
