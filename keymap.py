@@ -42,7 +42,7 @@ keymap[0x0A] = 'KEY_ENTER'
 keymap[0x1B] = 'KEY_LEFTSHIFT'
 keymap[0x7E] = 'KEY_LEFTCTRL'
 keymap[0x20] = 'KEY_SPACE'
-keymap[0x1D] = 'KEY_COPY'
+keymap[0x1D] = 'KEY_RIGHTMETA'
 keymap[0x1C] = 'KEY_RIGHTSHIFT'
 
 
