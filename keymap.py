@@ -34,7 +34,7 @@ keymap[0x56] = 'KEY_V'
 keymap[0x42] = 'KEY_B'
 keymap[0x4E] = 'KEY_N'
 keymap[0x4D] = 'KEY_M'
-keymap[0x24] = 'KEY_DOLLAR'
+keymap[0x24] = 'KEY_COMMA'
 keymap[0x0A] = 'KEY_ENTER'
 
 

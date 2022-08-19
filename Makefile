@@ -12,16 +12,17 @@ clean::
 
 keymap:
 	mkdir -p /usr/share/keymaps/blackberry/
-	cp bbq10kbd.kmap /usr/share/keymaps/blackberry
-	gzip /usr/share/keymaps/blackberry/bbq10kbd.kmap.gz
+	gzip < bbq10kbd.kmap > /usr/share/keymaps/blackberry/bbq10kbd.kmap.gz
+
+keymap_config:
 	echo "KMAP=/usr/share/keymaps/blackberry/bbq10kbd.kmap.gz" >> /etc/default/keyboard
-
-
 
 push:
 	adb push bbq10kbd.c /root/bbq10kbd-kernel-driver/
 	adb push bbq10kbd.h /root/bbq10kbd-kernel-driver/
 	adb push bbq10kbd_keycodes.h /root/bbq10kbd-kernel-driver/
+	adb push bbq10kbd.kmap /root/bbq10kbd-kernel-driver/
+	adb push build-radxa.sh /root/bbq10kbd-kernel-driver/
 	adb push dts/bbq10kbd-radxa-zero.dts /root/bbq10kbd-kernel-driver/dts
 	adb shell /root/bbq10kbd-kernel-driver/build-radxa.sh 
 

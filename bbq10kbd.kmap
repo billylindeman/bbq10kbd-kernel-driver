@@ -75,8 +75,8 @@ keycode  49 = n
     alt keycode 49 = comma
 keycode  50 = m               
     alt keycode 50 = period
-keycode 178 = dollar
-    alt keycode 178 = Tab
+keycode  51 = dollar
+    alt keycode 51 = Tab
 
 
 # Fourth Row
