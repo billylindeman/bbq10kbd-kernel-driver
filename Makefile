@@ -10,6 +10,13 @@ modules modules_install clean::
 clean::
 	rm -rf   Module.symvers modules.order
 
+keymap:
+	mkdir -p /usr/share/keymaps/blackberry/
+	cp bbq10kbd.kmap /usr/share/keymaps/blackberry
+	gzip /usr/share/keymaps/blackberry/bbq10kbd.kmap.gz
+	echo "KMAP=/usr/share/keymaps/blackberry/bbq10kbd.kmap.gz" >> /etc/default/keyboard
+
+
 
 push:
 	adb push bbq10kbd.c /root/bbq10kbd-kernel-driver/
