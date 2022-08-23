@@ -22,7 +22,7 @@ dtc -@ -I dts -O dtb -o dts/bbq10kbd-radxa-zero.dtbo bbq10kbd-radxa-zero.dts
 cd ~
 git clone https://github.com/billylindeman/bbq10kbd-kernel-driver 
 cd bbq10kbd-kernel-driver/
-make modules modules_install
+make modules modules_install keymap keymap_config
 depmod -A
 echo bbq10kbd >> /etc/modules
 ```
