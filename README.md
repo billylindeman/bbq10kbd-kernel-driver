@@ -6,7 +6,7 @@ This kernel driver interfaces with the i2c protocol in this repo: https://github
 
 
 
-###Compile Device Tree Overlay
+### Compile Device Tree Overlay
 ```
 dtc -@ -I dts -O dtb -o dts/bbq10kbd-radxa-zero.dtbo bbq10kbd-radxa-zero.dts
 ```
